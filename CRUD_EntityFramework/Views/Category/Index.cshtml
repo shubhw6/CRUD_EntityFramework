@@ -1,0 +1,259 @@
+﻿<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
+
+<div class="container">
+    
+
+
+<div class="row">
+        <div class="col-md-3"><h1>Catgory</h1></div>
+    <div class="col-md-6" id="errorMessage"></div>
+    <div class="col-ms-3 text-end" >
+            <!-- Button trigger modal -->
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                Create Category
+            </button>
+
+            <!-- Modal -->
+            <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h1 class="modal-title fs-5" id="exampleModalLabel">Modal title</h1>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                       
+                            
+                            
+                        <div class="modal-body">
+                            <div class="form-group mb-3">
+                                <input type="text" id="name" class="form-control" placeholder="Please Enter your Name"/>
+                                
+                                
+
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <input type="text" id="mainCategory" class="form-control" placeholder="MainCategory"  />
+
+
+
+                            </div>
+
+
+
+
+                        </div>
+                        <div class="modal-footer">
+
+                            <input type="hidden" id="hdnId" value="0"/>
+
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary" onclick="Create()">Save changes</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </div>
+</div>
+    <hr />
+    
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+                 <th>ID</th>
+                <th>Name</th>
+                <th>MainCategory</th>
+                <th>Created Date</th>
+                <th>Action</th>
+        </tr>
+    </thead>
+    <tbody id="tbodyCategory">
+       
+
+    </tbody>
+
+
+</table>
+</div>
+@section Scripts
+    {
+
+   
+    <script type="text/javascript">
+
+        
+        $(document).ready(function (){
+            funCategoryList();
+        })
+
+
+        function funCategoryList() {
+            debugger;
+
+            var CategoryData = $("#tbodyCategory");
+            CategoryData.empty();
+            $.ajax({
+
+                type: "POST",
+                url: "@Url.Action("GetAllCategory","Category")",
+                
+                dataType: "json",
+                success: function (result) {
+                    console.warn(result);
+
+                    $.each(result.categoryList, function (index, a) {
+                        CategoryData.append(`
+                                 <tr>
+                  <td>${a.id}</td>
+                           <td>${a.name}</td>
+                                   <td>${a.mainCategory}</td>
+                                   <td>${a.createdDate}</td>
+
+                                   <td>
+                                                  <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal" onclick="fnshowEditData(${a.id})">
+                        Edit 
+                    </button>
+
+
+                               <button type="button" class="btn btn-primary"  onclick="Delete(${a.id})">
+                                Delete
+                            </button>
+                                                  
+                                   </td>
+
+                </tr>
+                        
+                        
+                        `);
+                    });
+                },
+                error: function (req, status, error) {
+
+                }
+
+            });
+        }
+
+
+
+        function Delete(id){
+            debugger;
+            $.ajax({
+
+                type: "POST",
+                url: "@Url.Action("DeleteData","Category")",
+                contentType: 'application/x-www-form-urlencoded;charset=UTF-8',
+                dataType: "json",
+                data: {
+
+                    "id": id
+                },
+
+                success: function (result) {
+                   console.log("deleted");
+                    funCategoryList();
+
+
+                },
+
+
+
+
+                error: function (req, status, error) {
+
+                }
+
+            });
+        }
+
+
+        
+
+
+
+        function fnshowEditData(id) {
+            debugger;
+            $.ajax({
+
+                type: "POST",
+                url: "@Url.Action("GetUpdateDeatils","Category")",
+
+                dataType: "json",
+                data:{
+                
+                "id":id
+                },
+
+                success: function (result) {
+                    $("#name").val(result.name);
+                        $("#mainCategory").val(result.mainCategory);
+                        $("#hdnId").val(result.id);
+
+
+                                 },
+
+
+
+                
+                error: function (req, status, error) {
+
+                }
+
+            });
+        }
+
+
+
+
+
+
+        function Create(){
+            debugger;
+              $.ajax({
+
+                type: "POST",
+                url: "@Url.Action("AddUpdateCategory","Category")",
+                contentType: 'application/x-www-form-urlencoded;charset=UTF-8',
+                data:{
+                "Name":$("#name").val(),
+                    "MainCategory": $("#mainCategory").val(),
+                    "Id":$("#hdnId").val()
+                
+                },
+              
+                success: function (response) {
+                    
+                    if(response.totalRow=='1')
+                    {
+
+                        $("#errorMessage").html("Added Data SuccessFully");
+                        funCategoryList();
+
+                        $("#name").val('');
+                        $("#mainCategory").val('');
+
+                    }
+                    else{
+
+                        $("#exampleModal").modal('show');
+                        $("#errorMessage").html("Data not added please check ");
+
+                    }
+
+
+                    
+                },
+                error: function (req, status, error) {
+
+                }
+
+            });
+        }
+
+
+       
+
+
+    </script>
+    }
